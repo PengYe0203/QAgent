@@ -256,8 +256,8 @@
 <div class="toast" id="toast"></div>
 
 <!-- Markdown 渲染 + HTML 消毒（本地自带，不依赖外网 CDN；异常时自动降级为纯文本显示） -->
-<script src="vendor/marked.min.js"></script>
-<script src="vendor/purify.min.js"></script>
+<script src="vendor/marked.min.js?v=2"></script>
+<script src="vendor/purify.min.js?v=2"></script>
 
 <script>
 const state = { busy: false, conversationId: null };
@@ -267,6 +267,11 @@ const input = $('input');
 const sendBtn = $('sendBtn');
 
 const MD_OK = typeof window.marked !== 'undefined' && typeof window.DOMPurify !== 'undefined';
+// 自诊断：页面加载后标记渲染库是否就绪（F12 控制台可查 document.body.dataset.md）
+document.body.dataset.md = MD_OK ? 'ok' : 'missing';
+if (!MD_OK) {
+  console.warn('[qagent] marked 或 DOMPurify 未加载，AI 回答将以纯文本显示（无 Markdown 排版）');
+}
 
 function toast(msg) {
   const t = $('toast');
