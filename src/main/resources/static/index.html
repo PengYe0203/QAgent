@@ -107,20 +107,70 @@
   .message.user .avatar { background: var(--primary); }
   .message.ai .avatar { background: linear-gradient(135deg, #7c3aed, #2563eb); }
   .bubble {
-    max-width: 76%; padding: 12px 16px; border-radius: var(--radius);
-    font-size: 14px; line-height: 1.7; white-space: pre-wrap; word-break: break-word;
+    max-width: 78%; padding: 12px 16px; border-radius: var(--radius);
+    font-size: 14px; line-height: 1.7; word-break: break-word;
   }
-  .message.user .bubble { background: var(--user-bubble); color: #fff; border-top-right-radius: 4px; }
+  .message.user .bubble { background: var(--user-bubble); color: #fff; border-top-right-radius: 4px; white-space: pre-wrap; }
   .message.ai .bubble { background: var(--ai-bubble); border: 1px solid var(--border); border-top-left-radius: 4px; }
-  .bubble .cursor { display: inline-block; width: 8px; height: 16px; background: var(--primary); margin-left: 2px; vertical-align: text-bottom; animation: blink 1s infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
 
-  .sources { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
-  .source-chip {
-    font-size: 11px; padding: 3px 10px; border-radius: 999px;
-    background: #eff6ff; color: var(--primary-dark);
-    border: 1px solid #bfdbfe;
+  /* ===== AI 气泡内 Markdown 排版 ===== */
+  .bubble .md { white-space: normal; }
+  .bubble .md > :first-child { margin-top: 0; }
+  .bubble .md > :last-child { margin-bottom: 0; }
+  .bubble .md p { margin: 0 0 8px; }
+  .bubble .md h1, .bubble .md h2, .bubble .md h3, .bubble .md h4 {
+    margin: 12px 0 6px; line-height: 1.4; font-weight: 600;
   }
+  .bubble .md h1 { font-size: 17px; }
+  .bubble .md h2 { font-size: 16px; }
+  .bubble .md h3 { font-size: 15px; }
+  .bubble .md h4 { font-size: 14px; }
+  .bubble .md ul, .bubble .md ol { margin: 0 0 8px; padding-left: 22px; }
+  .bubble .md li { margin: 2px 0; }
+  .bubble .md strong { color: #111827; }
+  .bubble .md code {
+    background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px;
+    padding: 1px 5px; font-size: 12.5px; font-family: Consolas, "Courier New", monospace;
+  }
+  .bubble .md pre {
+    background: #0f172a; color: #e2e8f0; border-radius: 8px;
+    padding: 10px 12px; margin: 8px 0; overflow-x: auto; white-space: pre;
+  }
+  .bubble .md pre code { background: transparent; border: none; color: inherit; padding: 0; }
+  .bubble .md blockquote {
+    border-left: 3px solid #bfdbfe; background: #f8fafc;
+    margin: 8px 0; padding: 6px 12px; color: var(--text-muted);
+    border-radius: 0 6px 6px 0;
+  }
+  .bubble .md table { border-collapse: collapse; margin: 8px 0; font-size: 13px; display: block; overflow-x: auto; }
+  .bubble .md th, .bubble .md td { border: 1px solid var(--border); padding: 5px 10px; }
+  .bubble .md th { background: #f8fafc; font-weight: 600; }
+  .bubble .md hr { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
+
+  /* ===== 参考来源（文件名 + 位置，点击展开原文）===== */
+  .sources { margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 10px; }
+  .sources-title {
+    font-size: 12px; font-weight: 600; color: var(--text-muted);
+    margin-bottom: 6px; display: flex; align-items: center; gap: 4px;
+  }
+  .source-item { margin-bottom: 6px; }
+  .source-head {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    cursor: pointer; user-select: none;
+    background: #f8fafc; border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 10px; font-size: 12px;
+    transition: border-color .15s;
+  }
+  .source-head:hover { border-color: var(--primary); background: #eff6ff; }
+  .source-file { font-weight: 600; color: var(--primary-dark); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; }
+  .source-loc { color: var(--text-muted); background: #eef2ff; border-radius: 999px; padding: 1px 8px; }
+  .source-toggle { margin-left: auto; color: #94a3b8; font-size: 11px; flex-shrink: 0; }
+  .source-snippet {
+    margin-top: 4px; background: #fffef5; border: 1px solid #fde68a;
+    border-radius: 8px; padding: 8px 12px; font-size: 12.5px;
+    line-height: 1.7; color: #713f12; white-space: pre-wrap; word-break: break-word;
+  }
+
   .welcome { text-align: center; padding-top: 15vh; color: var(--text-muted); }
   .welcome .big { font-size: 44px; margin-bottom: 16px; }
   .welcome h3 { font-size: 18px; color: var(--text); margin-bottom: 8px; }
@@ -199,11 +249,15 @@
         <textarea id="input" rows="1" placeholder="输入你的问题，Enter 发送，Shift+Enter 换行…"></textarea>
         <button class="send-btn" id="sendBtn" title="发送">➤</button>
       </div>
-      <div class="hint">回答基于知识库文档生成，请以公司正式制度为准 · 支持溯源引用</div>
+      <div class="hint">回答基于知识库文档生成，请以公司正式制度为准 · 点击"参考来源"可查看原文位置</div>
     </div>
   </main>
 </div>
 <div class="toast" id="toast"></div>
+
+<!-- Markdown 渲染 + HTML 消毒（离线/CDN 不可用时自动降级为纯文本显示） -->
+<script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
 
 <script>
 const state = { busy: false, conversationId: null };
@@ -212,6 +266,8 @@ const chatArea = $('chatArea');
 const input = $('input');
 const sendBtn = $('sendBtn');
 
+const MD_OK = typeof window.marked !== 'undefined' && typeof window.DOMPurify !== 'undefined';
+
 function toast(msg) {
   const t = $('toast');
   t.textContent = msg;
@@ -219,7 +275,7 @@ function toast(msg) {
   setTimeout(() => t.classList.remove('show'), 2200);
 }
 function esc(s) {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 function scrollBottom() { chatArea.scrollTop = chatArea.scrollHeight; }
 
@@ -235,13 +291,57 @@ function addMessage(role) {
   return el.querySelector('.bubble');
 }
 
-function addSources(bubble, sources) {
-  if (!sources || !sources.length) return;
-  const box = document.createElement('div');
-  box.className = 'sources';
-  box.innerHTML = sources.map(s =>
-    `<span class="source-chip">📎 ${esc(s.source)} ${s.sourceRef ? '· ' + esc(s.sourceRef) : ''}</span>`).join('');
-  bubble.appendChild(box);
+/**
+ * 把 Markdown 渲染成安全的 HTML。
+ * marked 负责转换，DOMPurify 负责消毒（防 XSS）；CDN 不可用时降级为转义纯文本。
+ */
+function renderMarkdown(text) {
+  if (!text) return '';
+  if (MD_OK) {
+    try {
+      return window.DOMPurify.sanitize(window.marked.parse(text));
+    } catch (e) { /* 落到纯文本降级 */ }
+  }
+  return esc(text).replace(/\n/g, '<br>');
+}
+
+/**
+ * 渲染"参考来源"列表：每行 文件名 + 位置，点击展开/收起命中原文片段。
+ * snippet 用 textContent 写入，天然免疫 XSS。
+ */
+function renderSources(box, sources) {
+  if (!sources || !sources.length) { box.remove(); return; }
+  box.innerHTML = '<div class="sources-title">📎 参考来源（点击查看原文）</div>' +
+    sources.map((s, i) => `
+      <div class="source-item">
+        <div class="source-head" role="button" aria-expanded="false">
+          <span class="source-file" title="${esc(s.source)}">${esc(s.source)}</span>
+          ${s.sourceRef ? `<span class="source-loc">${esc(s.sourceRef)}</span>` : ''}
+          <span class="source-toggle">展开原文 ▾</span>
+        </div>
+        <div class="source-snippet" hidden></div>
+      </div>`).join('');
+
+  box.querySelectorAll('.source-item').forEach((itemEl, i) => {
+    const src = sources[i];
+    const headEl = itemEl.querySelector('.source-head');
+    const snippetEl = itemEl.querySelector('.source-snippet');
+    const toggleEl = itemEl.querySelector('.source-toggle');
+    headEl.addEventListener('click', () => {
+      const show = snippetEl.hidden;
+      if (show) {
+        snippetEl.textContent = (src.snippet || '').trim() || '（该片段无原文内容）';
+        toggleEl.textContent = '收起原文 ▴';
+        headEl.setAttribute('aria-expanded', 'true');
+      } else {
+        toggleEl.textContent = '展开原文 ▾';
+        headEl.setAttribute('aria-expanded', 'false');
+      }
+      snippetEl.hidden = !show;
+      scrollBottom();
+    });
+  });
+  scrollBottom();
 }
 
 async function sendMessage() {
@@ -253,7 +353,24 @@ async function sendMessage() {
 
   addMessage('user').textContent = question;
   const aiBubble = addMessage('ai');
+
+  // AI 气泡 = Markdown 正文 + 参考来源
+  const mdBox = document.createElement('div');
+  mdBox.className = 'md';
+  aiBubble.appendChild(mdBox);
+  const srcBox = document.createElement('div');
+  srcBox.className = 'sources';
+  aiBubble.appendChild(srcBox);
+
   let fullAnswer = '';
+  let renderPending = false;
+  const doRender = () => { mdBox.innerHTML = renderMarkdown(fullAnswer); };
+  const scheduleRender = () => {
+    if (renderPending) return;
+    renderPending = true;
+    // 合并同一帧内的多次 token 追加，避免每个 token 都全量渲染
+    requestAnimationFrame(() => { renderPending = false; doRender(); scrollBottom(); });
+  };
 
   try {
     const resp = await fetch('/api/chat/stream', {
@@ -277,47 +394,51 @@ async function sendMessage() {
       while ((idx = buffer.indexOf('\n\n')) !== -1) {
         const rawEvent = buffer.slice(0, idx);
         buffer = buffer.slice(idx + 2);
-        handleSseEvent(rawEvent, aiBubble);
+        handleSseEvent(rawEvent);
       }
     }
 
-    // 流结束后，把完整回答展示（若最后一段没触发 token 事件也兜底）
-    if (fullAnswer && aiBubble.textContent.length === 0) {
-      aiBubble.textContent = fullAnswer;
-    }
+    // 流结束兜底：确保最终内容已渲染
+    doRender();
   } catch (e) {
-    aiBubble.innerHTML = '<span style="color:var(--danger)">⚠️ ' + esc(e.message) + '</span>';
+    mdBox.innerHTML = '<span style="color:var(--danger)">⚠️ ' + esc(e.message) + '</span>';
   } finally {
     state.busy = false;
     sendBtn.disabled = false;
     input.focus();
     scrollBottom();
   }
-}
 
-/** 解析并处理单个 SSE 事件（event: xxx \n data: yyy） */
-function handleSseEvent(rawEvent, aiBubble) {
-  let eventName = 'message';
-  let data = '';
-  for (const line of rawEvent.split('\n')) {
-    if (line.startsWith('event:')) eventName = line.slice(6).trim();
-    else if (line.startsWith('data:')) data += line.slice(5).trim() + '\n';
-  }
-  data = data.trim();
-  if (!data) return;
-
-  try {
-    if (eventName === 'token') {
-      // 增量 token：追加到气泡（打字机效果）
-      aiBubble.textContent += data;
-      scrollBottom();
-    } else if (eventName === 'meta' || eventName === 'done') {
-      // 元信息/结束事件：解析出 conversationId
-      const obj = JSON.parse(data);
-      if (obj.conversationId) state.conversationId = obj.conversationId;
+  /** 解析并处理单个 SSE 事件（event: xxx \n data: yyy） */
+  function handleSseEvent(rawEvent) {
+    let eventName = 'message';
+    let data = '';
+    for (const line of rawEvent.split('\n')) {
+      if (line.startsWith('event:')) eventName = line.slice(6).trim();
+      else if (line.startsWith('data:')) data += line.slice(5).trim() + '\n';
     }
-  } catch (e) {
-    // 忽略解析失败（非 JSON 的 data）
+    data = data.trim();
+    if (!data) return;
+
+    try {
+      if (eventName === 'token') {
+        // 增量 token：累积后节流渲染（打字机效果 + Markdown 实时排版）
+        fullAnswer += data;
+        scheduleRender();
+      } else if (eventName === 'meta') {
+        // meta：会话 ID + 引用来源（来源在生成前已由后端算好）
+        const obj = JSON.parse(data);
+        if (obj.conversationId) state.conversationId = obj.conversationId;
+        if (obj.sources) renderSources(srcBox, obj.sources);
+      } else if (eventName === 'done') {
+        const obj = JSON.parse(data);
+        if (obj.conversationId) state.conversationId = obj.conversationId;
+        doRender();
+        scrollBottom();
+      }
+    } catch (e) {
+      // 忽略解析失败（非 JSON 的 data）
+    }
   }
 }
 

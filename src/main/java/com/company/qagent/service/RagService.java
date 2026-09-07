@@ -26,10 +26,11 @@ public class RagService {
             你是一个严谨的企业文档智能助手。请严格基于下面提供的【文档片段】回答用户的问题。
 
             回答要求：
-            1. 如果文档片段中包含答案，请用中文简洁、准确地回答。
-            2. 如果文档片段中没有答案，请明确回答"根据现有文档无法找到相关信息"，不要编造内容。
-            3. 只使用提供的文档上下文，不要使用外部知识。
-            4. 如果用户追问（如"那第二步呢"），请结合对话历史理解指代，再基于文档回答。
+            1. 如果文档片段中包含答案，请用中文简洁、准确地回答；如果片段中没有答案，请明确回答"根据现有文档无法找到相关信息"，不要编造内容。
+            2. 只使用提供的文档上下文，不要使用外部知识。
+            3. 如果用户追问（如"那第二步呢"），请结合对话历史理解指代，再基于文档回答。
+            4. 排版要求：请使用简洁的 Markdown 排版（要点可用 **加粗** 强调，步骤可用短列表或有序列表，必要时可用小表格）；标题最多用到三级，不要以一级大标题开头。
+            5. 不要在回答末尾输出"参考文档 / 来源 / 出处"之类的列表，引用出处会由页面单独展示。
             """;
 
     private final HybridSearchService searchService;
@@ -66,33 +67,45 @@ public class RagService {
                 .call()
                 .content();
 
-        // 提取引用来源（来自精排后的片段）
-        List<SourceRef> sources = hits.stream()
-                .map(h -> new SourceRef(h.getSource(), h.getSourceRef()))
-                .toList();
+        // 提取引用来源（来自精排后的片段，含原文片段便于溯源）
+        List<SourceRef> sources = toSources(hits);
 
         return new ChatResult(answer, sources);
     }
 
     /**
-     * 流式问答：与 answer() 相同的检索+Rerank，但用 stream() 逐 token 生成。
-     *
-     * @return 回答的 token 流（每个元素是一段增量文本），前端逐个追加实现打字机效果
+     * 流式问答：与 answer() 相同的检索+Rerank 流程，但返回引用来源与 token 流。
+     * 来源在生成前就已确定，因此封装为 {@link StreamResult} 一并返回，
+     * 控制器可先把来源通过 SSE meta 事件发给前端，再订阅 token 流。
      */
-    public Flux<String> streamAnswer(String question, int topK, List<Message> history) {
+    public StreamResult streamChat(String question, int topK, List<Message> history) {
         // ① 检索 + ② Rerank 精排
         List<ScoredChunk> hits = retrieve(question, topK);
+
+        // 引用来源（生成前确定）
+        List<SourceRef> sources = toSources(hits);
 
         // ③ 拼上下文
         String context = buildContext(hits);
 
         // ④ 流式生成：stream().content() 返回 Flux<String>（增量 token）
-        return chatClient.prompt()
+        Flux<String> tokens = chatClient.prompt()
                 .system(SYSTEM_PROMPT)
                 .messages(history)
                 .user(context + "\n\n【用户问题】\n" + question)
                 .stream()
                 .content();
+
+        return new StreamResult(sources, tokens);
+    }
+
+    /**
+     * 把精排命中的片段转成引用来源列表（文件名 + 原文位置 + 原文片段）。
+     */
+    private List<SourceRef> toSources(List<ScoredChunk> hits) {
+        return hits.stream()
+                .map(h -> new SourceRef(h.getSource(), h.getSourceRef(), h.getContent()))
+                .toList();
     }
 
     /**
@@ -158,5 +171,11 @@ public class RagService {
      * 问答结果：回答文本 + 引用来源。
      */
     public record ChatResult(String answer, List<SourceRef> sources) {
+    }
+
+    /**
+     * 流式问答结果：引用来源（meta 事件用）+ 回答 token 流。
+     */
+    public record StreamResult(List<SourceRef> sources, Flux<String> tokens) {
     }
 }

@@ -6,6 +6,7 @@ import com.company.qagent.service.ConversationStore;
 import com.company.qagent.service.HybridSearchService;
 import com.company.qagent.service.RagService;
 import com.company.qagent.service.ScoredChunk;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +17,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 问答接口。
@@ -33,12 +36,14 @@ public class ChatController {
     private final RagService ragService;
     private final HybridSearchService searchService;
     private final ConversationStore conversationStore;
+    private final ObjectMapper objectMapper;
 
     public ChatController(RagService ragService, HybridSearchService searchService,
-                          ConversationStore conversationStore) {
+                          ConversationStore conversationStore, ObjectMapper objectMapper) {
         this.ragService = ragService;
         this.searchService = searchService;
         this.conversationStore = conversationStore;
+        this.objectMapper = objectMapper;
     }
 
     @PostMapping
@@ -68,7 +73,7 @@ public class ChatController {
      *
      * <p>事件序列：</p>
      * <pre>
-     *   event: meta     →  data: {"conversationId":"...", "sources":[...]}   （先发元信息）
+     *   event: meta     →  data: {"conversationId":"...", "sources":[{"source":"文件名","sourceRef":"位置","snippet":"原文片段"}]}
      *   event: token    →  data: 回答增量文本                                  （逐个 token）
      *   event: done     →  data: {"conversationId":"..."}                     （结束）
      * </pre>
@@ -84,13 +89,18 @@ public class ChatController {
 
         SseEmitter emitter = new SseEmitter(0L);   // 0L = 不超时
 
-        // ③ 订阅 token 流，逐个发送 SSE 事件
-        Flux<String> tokenFlux = ragService.streamAnswer(request.question(), 5, history);
+        // ③ 检索 + Rerank 在此同步完成，返回引用来源与 token 流
+        RagService.StreamResult result = ragService.streamChat(request.question(), 5, history);
+        Flux<String> tokenFlux = result.tokens();
 
-        // 先发会话 ID（meta 事件）
+        // 先发会话 ID + 引用来源（meta 事件），页面据此展示"参考来源"
         try {
-            emitter.send(SseEmitter.event().name("meta").data("{\"conversationId\":\"" + conversationId + "\"}"));
-        } catch (IOException e) {
+            Map<String, Object> meta = new HashMap<>();
+            meta.put("conversationId", conversationId);
+            meta.put("sources", result.sources());
+            String metaJson = objectMapper.writeValueAsString(meta);
+            emitter.send(SseEmitter.event().name("meta").data(metaJson));
+        } catch (Exception e) {
             emitter.completeWithError(e);
             return emitter;
         }
