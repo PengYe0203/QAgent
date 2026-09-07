@@ -1,0 +1,31 @@
+# ============================================================
+# 本地开发环境配置模板
+# 使用方法：复制本文件为 application-local.properties（已被
+# .gitignore 排除，不会上传），再填入真实密钥：
+#   cp application-local.properties.example application-local.properties
+# 或使用环境变量覆盖（DB_HOST / DB_PASSWORD / DEEPSEEK_API_KEY 等）。
+# ============================================================
+
+# ========== Embedding（SiliconFlow，OpenAI 兼容接口） ==========
+spring.ai.openai.api-key=${EMBEDDING_API_KEY:你的_SiliconFlow_API_Key}
+
+# ========== 数据库连接（本机 PostgreSQL + pgvector） ==========
+# docker-compose.yml 默认口令为 postgres，如需自定义请同步修改
+spring.datasource.url=jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:qagent}
+spring.datasource.username=${DB_USERNAME:postgres}
+spring.datasource.password=${DB_PASSWORD:postgres}
+
+# ========== pgvector 向量存储 ==========
+# 启动时自动建表 + 安装 vector 扩展
+spring.ai.vectorstore.pgvector.initialize-schema=true
+spring.ai.vectorstore.pgvector.index-type=HNSW
+spring.ai.vectorstore.pgvector.distance-type=COSINE_DISTANCE
+# BGE-M3 向量维度为 1024（若更换模型需同步修改）
+spring.ai.vectorstore.pgvector.dimensions=1024
+
+# ========== DeepSeek 对话模型 ==========
+spring.ai.deepseek.api-key=${DEEPSEEK_API_KEY:你的_DeepSeek_API_Key}
+
+# ========== Rerank 重排（复用同一个 SiliconFlow key） ==========
+app.rerank.enabled=true
+app.rerank.api-key=${RERANK_API_KEY:你的_SiliconFlow_API_Key}

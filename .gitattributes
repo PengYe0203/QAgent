@@ -1,0 +1,7 @@
+# 统一行尾：仓库内统一存 LF，检出时按各平台自动转换
+* text=auto
+
+# 标记不可 diff 的二进制类型（如需日后上传此类文件）
+*.pdf binary
+*.docx binary
+*.xlsx binary
