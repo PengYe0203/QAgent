@@ -1,0 +1,27 @@
+# 版本控制元数据
+.git
+.github
+
+# 构建产物与本地缓存
+target
+*.class
+.mvn/wrapper/maven-wrapper.jar
+
+# 敏感配置 —— 严禁进入构建上下文（否则会被打进镜像/制品）
+**/application-local.properties
+.env
+
+# IDE 与系统文件
+.idea
+.vscode
+*.iml
+.DS_Store
+Thumbs.db
+
+# 本地记录 / 测试辅助文件
+cp.txt
+recordDev_QAbot.docx
+*.log
+logs
+test-sample.pdf
+hs_err_pid*.log

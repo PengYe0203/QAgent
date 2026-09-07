@@ -17,6 +17,7 @@ hs_err_pid*.log
 # ===== 敏感信息（含真实 API Key / 数据库密码，禁止上传）=====
 *.local.properties
 application-local.properties
+.env
 
 # ===== 本地记录文件（仅本机保留）=====
 cp.txt

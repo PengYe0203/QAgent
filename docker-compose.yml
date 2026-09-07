@@ -15,6 +15,26 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    restart: unless-stopped
+
+  app:
+    build: .
+    image: qagent:0.0.1
+    container_name: qagent-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # 应用在容器内通过服务名访问数据库（application-local.properties 默认 localhost 被此覆盖）
+      DB_HOST: postgres
+      SPRING_PROFILES_ACTIVE: local
+    volumes:
+      # 挂载本机密钥配置（不入镜像）。spring 自动从 /app/config/ 加载 profile 配置。
+      # 缺少此文件时应用会因没有数据源配置而启动失败，请先按 .example 模板创建。
+      - ./src/main/resources/application-local.properties:/app/config/application-local.properties:ro
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
 
 volumes:
   pgdata:

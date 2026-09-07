@@ -60,9 +60,32 @@ src/main/resources/
 
 ### 前置要求
 
-- JDK 17、Maven 3.8+
-- Docker（用于启动 pgvector 数据库）
+- JDK 17、Maven 3.8+（仅"本地开发方式"需要）
+- Docker（全容器部署必需）
 - DeepSeek API Key、SiliconFlow API Key
+
+## 方式一：全容器部署（推荐，数据库 + 应用都在 Docker 里）
+
+```bash
+# 1. 创建本地密钥配置（已被 .gitignore 排除，不会上传，见下方模板）
+cp src/main/resources/application-local.properties.example src/main/resources/application-local.properties
+#    然后编辑该文件填入你的 DeepSeek / SiliconFlow Key
+
+# 2. 构建镜像并启动（首次构建需拉取 Maven/JDK 镜像并下载依赖，较慢）
+docker compose up -d --build
+
+# 3. 打开内置网页
+#    http://localhost:8080
+```
+
+说明：
+
+- `postgres` 服务：pgvector/pgvector:pg16，数据保存在命名卷 `pgdata`（`docker compose down` 不丢数据）
+- `app` 服务：镜像内**不含任何密钥**。运行时把宿主机 `src/main/resources/application-local.properties` 只读挂载进容器 `/app/config/`，Spring Boot 自动加载；容器内通过 `DB_HOST=postgres` 访问数据库（compose 已设置，会覆盖配置里的 localhost 默认值）
+- 常用命令：`docker compose logs -f app` 看应用日志；`docker compose down` 停止；`docker compose down -v` 连数据一起删
+- 若不想把密钥放在本机配置文件里，也可改用环境变量注入（在 `docker-compose.yml` 的 `app.environment` 里加 `DEEPSEEK_API_KEY` / `EMBEDDING_API_KEY` / `RERANK_API_KEY`，或项目根目录 `.env` 文件，`.env` 同样被 gitignore）
+
+## 方式二：本地开发（mvn 直接跑，代码热改方便）
 
 ### 1. 启动数据库
 
