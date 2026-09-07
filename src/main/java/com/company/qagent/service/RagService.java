@@ -60,12 +60,12 @@ public class RagService {
         String context = buildContext(hits);
 
         // ④ 生成回答：system + 历史消息 + 当前问题（含上下文片段）
-        String answer = chatClient.prompt()
-                .system(SYSTEM_PROMPT)
-                .messages(history)                       // 多轮对话历史
-                .user(context + "\n\n【用户问题】\n" + question)
-                .call()
-                .content();
+        String answer = chatClient.prompt() // 开始构建请求
+                .system(SYSTEM_PROMPT) // 系统提示词
+                .messages(history) // 多轮对话历史
+                .user(context + "\n\n【用户问题】\n" + question) // 用户输入
+                .call() // 执行调用
+                .content(); // 获取返回结果
 
         // 提取引用来源（来自精排后的片段，含原文片段便于溯源）
         List<SourceRef> sources = toSources(hits);
