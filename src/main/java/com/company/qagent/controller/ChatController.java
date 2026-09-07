@@ -111,7 +111,9 @@ public class ChatController {
                 token -> {
                     try {
                         fullAnswer.append(token);
-                        emitter.send(SseEmitter.event().name("token").data(token));
+                        // token 用 JSON 字符串发送：内容里的换行/引号会被转义成 \n 等，
+                        // 保证 data 行永不含真正的空行，避免客户端按空行切分 SSE 事件时出错
+                        emitter.send(SseEmitter.event().name("token").data(objectMapper.writeValueAsString(token)));
                     } catch (IOException e) {
                         emitter.completeWithError(e);
                     }

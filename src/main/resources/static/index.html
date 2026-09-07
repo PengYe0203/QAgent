@@ -427,9 +427,12 @@ async function sendMessage() {
 
     try {
       if (eventName === 'token') {
-        // 增量 token：累积后节流渲染（打字机效果 + Markdown 实时排版）
-        fullAnswer += data;
-        scheduleRender();
+        // 增量 token（JSON 编码字符串，换行已转义为 \n）：累积后节流渲染
+        const piece = JSON.parse(data);
+        if (typeof piece === 'string') {
+          fullAnswer += piece;
+          scheduleRender();
+        }
       } else if (eventName === 'meta') {
         // meta：会话 ID + 引用来源（来源在生成前已由后端算好）
         const obj = JSON.parse(data);
