@@ -255,9 +255,9 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<!-- Markdown 渲染 + HTML 消毒（离线/CDN 不可用时自动降级为纯文本显示） -->
-<script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+<!-- Markdown 渲染 + HTML 消毒（本地自带，不依赖外网 CDN；异常时自动降级为纯文本显示） -->
+<script src="vendor/marked.min.js"></script>
+<script src="vendor/purify.min.js"></script>
 
 <script>
 const state = { busy: false, conversationId: null };
